@@ -64,6 +64,7 @@ response = {}
 response['status'] = 500
 response['message'] = 'Something Went Wrong'
 
+
 class TodoView(APIView):
     def get(self, request):
 
@@ -89,21 +90,68 @@ class TodoView(APIView):
 
             todo_name = data.get('todo_name')
             todo_description = data.get('todo_description')
-            print(todo_name)
-            print(todo_description)
 
+            if todo_name is None:
+                response['message'] = 'Todo Required'
+                raise Exception("Name not found")
+            if todo_description is None:
+                response['message'] = 'Description Required'
+                raise Exception("Description not found")
+
+            todo_obj = Todo.objects.create(todo_name=todo_name, todo_description=todo_description)
+            payload = {'todo_id': todo_obj.id, 'todo_name': todo_obj.todo_name,
+                       'todo_description': todo_obj.todo_description, }
             response['status'] = 200
             response['message'] = 'Your Todo is saved '
+            response['data'] = payload
 
         except Exception as e:
             print("Exception -->", e)
         return Response(response)
 
     def delete(self, request):
-        pass
+        try:
+
+            todo_id = request.GET.get('todo_id')
+            if todo_id is None:
+                response['message'] = 'Todo id Required'
+                raise Exception("Todo id not found")
+            try:
+                todo_obj = Todo.objects.get(id=todo_id)
+                todo_obj.delete()
+                response['status'] = 200
+                response['message'] = 'Todo Deleted'
+            except Exception as e:
+                response['message'] = 'Invalid Todo Id'
+
+        except Exception as e:
+            print("Exception -->", e)
+        return Response(response)
 
     def update(self, request):
-        pass
+        try:
+            data = request.data
+            todo_id = data.get('todo_id')
+            todo_name = data.get('todo_name')
+            todo_description = data.get('todo_description')
+            is_completed = data.get('is_completed')
+            if todo_id is None:
+                response['message'] = 'Todo id Required'
+                raise Exception("Todo id not found")
+            try:
+                todo_obj = Todo.objects.get(id=todo_id)
+                todo_obj.todo_name = todo_name
+                todo_obj.todo_description = todo_description
+                todo_obj.is_completed = is_completed
+                todo_obj.save()
+                response['status'] = 200
+                response['message'] = 'Todo Updated'
+            except Exception as e:
+                response['message'] = 'Invalid Todo Id'
+
+        except Exception as e:
+            print("Exception -->", e)
+        return Response(response)
 
 
 TodoView = TodoView.as_view()

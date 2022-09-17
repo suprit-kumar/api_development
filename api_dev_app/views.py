@@ -60,9 +60,7 @@ def deleteProduct(request, pk):
     return Response({'success': 'Item deleted successfully'})
 
 
-response = {}
-response['status'] = 500
-response['message'] = 'Something Went Wrong'
+response = {'status': 500, 'message': 'Something Went Wrong'}
 
 
 class TodoView(APIView):
@@ -70,13 +68,15 @@ class TodoView(APIView):
 
         try:
             todo_objs = Todo.objects.all()
-            payload = []
-            for obj in todo_objs:
-                payload.append({
+            payload = [
+                {
                     'todo_name': obj.todo_name,
                     'todo_description': obj.todo_description,
                     'is_completed': obj.is_completed,
-                })
+                }
+                for obj in todo_objs
+            ]
+
             response['status'] = 200
             response['message'] = 'All Todos'
             response['data'] = payload
